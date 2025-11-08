@@ -1,5 +1,5 @@
 {
-  "name": "Copy of Oracle DB Monitoring Dashboard",
+  "name": "Oracle DB Monitoring Dashboard",
   "description": "A centralized dashboard to monitor Oracle databases (11g to 19c) and their underlying OS (Linux, Windows, Solaris). It provides real-time insights into performance, availability, and resource utilization with a modern, glossy, dark-themed UI.",
   "requestFramePermissions": []
 }

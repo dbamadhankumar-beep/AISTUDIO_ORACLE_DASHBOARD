@@ -1,5 +1,5 @@
 {
-  "name": "copy-of-oracle-db-monitoring-dashboard",
+  "name": "oracle-db-monitoring-dashboard",
   "private": true,
   "version": "0.0.0",
   "type": "module",

@@ -1,47 +1,35 @@
-# ProactiveDB Live Data Architecture
+# ProactiveDB 2-Tier Architecture
 
-The ProactiveDB system uses a three-tier architecture to provide a scalable and maintainable monitoring solution. The components are the **Monitoring Agent**, the **Centralized Server**, and the **Dashboard Frontend**.
+The ProactiveDB system uses a simplified and robust two-tier architecture, making it easy to deploy and manage. The components are the **Monitoring Agent** and the **Centralized Server**, which also serves the frontend dashboard.
 
-This document describes the final, persistent architecture using SQLite for data storage.
-
-## 1. Monitoring Agent (`/agent`)
+## Tier 1: Monitoring Agent (`/agent`)
 
 A powerful, stateful Python script that you install on every server you want to monitor.
 
 -   **Responsibility**:
     1.  Collect comprehensive health and performance metrics from the OS and Oracle DB.
-    2.  Store time-series data (for CPU, memory, etc.) locally in its own **SQLite database (`agent_data.sqlite`)**.
-    3.  On a schedule, package the latest point-in-time metrics and recent historical data into a single JSON payload.
-    4.  Send this payload to the Centralized Server.
--   **Data Transmission**: Securely sends data to the Centralized Server via HTTP POST.
--   **Resilience**: If the server is unavailable, the agent caches payloads in a separate **SQLite database (`agent_cache.sqlite`)** and sends them when the connection is restored, preventing data loss.
--   **Configuration**: The agent's behavior, including collection frequency, history retention, and server address, is managed via `agent/config.ini`.
+    2.  Store time-series data locally in its own **SQLite database (`agent_data.sqlite`)**.
+    3.  Package the latest point-in-time metrics and historical data into a single JSON payload.
+    4.  Send this payload to the Centralized Server's API endpoint (`POST /api/agent/data`).
+-   **Resilience**: Features an offline caching mechanism using a local SQLite database (`agent_cache.sqlite`) to prevent data loss during network outages.
+-   **Configuration**: All settings are managed via `agent/config.ini`.
 
 **See `agent/README.md` for full setup and usage instructions.**
 
-## 2. Centralized Dashboard Server (`/server`)
+## Tier 2: Centralized Server & Dashboard (`/server` & React Frontend)
 
-This is the core of the system. It acts as the brain, receiving data from all agents and serving the user interface to the administrator.
+This is the core of the system. It's a single Node.js application that acts as both the backend API and the web server for the user interface.
 
--   **Responsibility**:
-    -   Provide a REST API (`POST /api/agent/data`) for agents to submit their JSON data payloads.
-    -   **Persist** the latest payload from each agent into a central **SQLite database (`proactivedb.sqlite`)**. This replaces the previous volatile in-memory storage.
-    -   Provide a REST API (`GET /api/frontend/data`) for the frontend to fetch the latest state of all systems.
-    -   Serve the static files (HTML, JS, CSS) of the React frontend.
--   **Implementation**: A Node.js Express server (`server/server.js`) with the `sqlite` package for database operations.
+-   **Backend Responsibilities**:
+    -   Provide a REST API (`POST /api/agent/data`) to receive data from all agents.
+    -   Persist the latest data from each agent into a central **SQLite database (`proactivedb.sqlite`)**.
+    -   Provide a REST API (`GET /api/frontend/data`) for the dashboard to fetch the latest state of all monitored systems.
+
+-   **Frontend Responsibilities**:
+    -   Serve the static files (HTML, JS, CSS) of the compiled React dashboard.
+    -   The dashboard, running in the user's browser, provides a rich, interactive visualization of the monitoring data.
+    -   It fetches its initial data from the server and then periodically polls the `GET /api/frontend/data` endpoint to display live updates.
+
+-   **Implementation**: A Node.js Express server (`server/server.js`) that serves the React application and provides the API. The frontend communicates with this backend via the `services/apiService.ts` module.
 
 **See `server/README.md` for setup and usage instructions.**
-
-## 3. Dashboard Frontend (This React App)
-
-The user interface you see and interact with, located in the root of this project.
-
--   **Responsibility**:
-    -   Provide a rich, interactive visualization of the monitoring data.
-    -   Fetch the complete state for all databases from the centralized server's API.
-    -   Display live data by periodically polling the server for the latest metrics.
--   **Data Flow**:
-    1.  The app fetches the initial state from `GET /api/frontend/data`. The server reads its SQLite DB to assemble this state.
-    2.  A timer periodically re-fetches from the same endpoint.
-    3.  The UI components, optimized with `React.memo`, update efficiently to reflect the new data.
--   **API Integration**: The frontend communicates with the backend via the `services/apiService.ts` module. In a real deployment, you would update this file to point to the production server's URL.

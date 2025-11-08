@@ -28,13 +28,13 @@ const App: React.FC = () => {
     if (isLoading) return; // Don't start polling until initial data is loaded
 
     const interval = setInterval(() => {
-      fetchRealtimeUpdates(customers).then(updatedCustomers => {
+      fetchRealtimeUpdates().then(updatedCustomers => {
         setCustomers(updatedCustomers);
       });
     }, 5000); // Refresh every 5 seconds
 
     return () => clearInterval(interval);
-  }, [isLoading, customers]);
+  }, [isLoading]);
 
   const handleSelectDb = (db: Database) => {
     setSelectedDbId(db.id);
@@ -69,6 +69,17 @@ const App: React.FC = () => {
     }
     if (view === 'dashboard' && selectedDb) {
       return <Dashboard database={selectedDb} />;
+    }
+    // Handle case where no agents have reported data yet
+    if (customers.length === 0) {
+       return (
+         <div className="flex items-center justify-center h-full text-center">
+            <div>
+              <p className="text-xl text-gray-400 mb-2">Waiting for agent data...</p>
+              <p className="text-sm text-gray-500">Ensure your monitoring agents are running and configured to point to this server.</p>
+            </div>
+         </div>
+       )
     }
     return (
        <div className="flex items-center justify-center h-full">

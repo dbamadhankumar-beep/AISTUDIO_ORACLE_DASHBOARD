@@ -1,41 +1,47 @@
 import { Customer } from '../types';
-import { getInitialCustomers, getLiveMetricsUpdate } from '../lib/api-mock';
 
-// In a real application, this would use `fetch` to call a backend API.
-// e.g., const BASE_URL = 'https://your-api-server.com/api/v1';
+// Use a relative path for the API endpoint. This works because the Node.js server
+// serves both the API and the frontend from the same origin.
+const API_BASE_URL = '/api';
 
 /**
- * Simulates fetching the initial list of customers and their databases.
- * In a real app, this would be: `GET /customers`
+ * Fetches the latest state of all customers and their databases from the server.
+ * This function is used for both the initial data load and for periodic polling.
  */
-export const fetchCustomersAndDatabases = (): Promise<Customer[]> => {
-  console.log('API_SERVICE: Fetching initial customer and database list...');
-  return new Promise(resolve => {
-    // Simulate network delay
-    setTimeout(() => {
-      const data = getInitialCustomers();
-      console.log('API_SERVICE: Received initial data.', data);
-      resolve(data);
-    }, 500);
-  });
+const fetchAllData = async (): Promise<Customer[]> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/frontend/data`);
+    if (!response.ok) {
+      console.error(`API Error: ${response.status} ${response.statusText}`);
+      // Return an empty array on error to prevent the UI from crashing.
+      return [];
+    }
+    const data = await response.json();
+    // Ensure the response is the expected array type, even if empty.
+    if (!Array.isArray(data)) {
+      console.error("API Error: Expected an array of customers, but received:", data);
+      return [];
+    }
+    return data;
+  } catch (error) {
+    console.error('Network or parsing error while fetching data:', error);
+    // Return an empty array so the UI can display a "waiting for data" message.
+    return [];
+  }
 };
 
 /**
- * Simulates polling a backend for the latest metrics for all databases.
- * In a real app, this might be a single efficient call: `GET /databases/realtime`
- * that returns an array of updated metrics.
+ * Fetches the initial list of customers and their databases from the server.
  */
-export const fetchRealtimeUpdates = (currentCustomers: Customer[]): Promise<Customer[]> => {
-  console.log('API_SERVICE: Polling for realtime updates...');
-  return new Promise(resolve => {
-    // Simulate network delay
-    setTimeout(() => {
-        const updatedCustomers = currentCustomers.map(customer => ({
-            ...customer,
-            databases: customer.databases.map(db => getLiveMetricsUpdate(db))
-        }));
-        console.log('API_SERVICE: Received realtime updates.');
-        resolve(updatedCustomers);
-    }, 300);
-  });
+export const fetchCustomersAndDatabases = (): Promise<Customer[]> => {
+  console.log('API_SERVICE: Fetching initial data from server...');
+  return fetchAllData();
+};
+
+/**
+ * Fetches the latest metrics for all databases to provide live updates.
+ */
+export const fetchRealtimeUpdates = (): Promise<Customer[]> => {
+  console.log('API_SERVICE: Polling for realtime updates from server...');
+  return fetchAllData();
 };
