@@ -14,7 +14,7 @@ For more details, see `ARCHITECTURE.md`.
 
 ## Centralized Port Configuration
 
-All port settings are managed in a single file: `project.config.json` in the root directory. If you need to change the ports for the frontend development server or the backend API, you only need to edit this one file.
+All port settings are managed in `project.config.json` in the root directory. This file contains a single `port` value that is used for both the development server and the production server.
 
 ---
 
@@ -43,23 +43,21 @@ All port settings are managed in a single file: `project.config.json` in the roo
 
 ### Running the Application (Development Mode)
 
-For development, you need to run both the backend API server and the frontend Vite server concurrently. **This requires two separate terminals.**
+The development environment has been simplified to run on a **single port** from a **single command**.
 
-**Terminal 1: Start the Backend API Server**
+**Start the Development Server:**
+In the project root directory, run:
 ```bash
-cd server
 npm run dev
 ```
-> This starts the Node.js API server on the port defined as `backend_port` in `project.config.json`. It will automatically restart when you make changes to server files.
 
-**Terminal 2: Start the Frontend Development Server**
-```bash
-# In the project root directory
-npm run dev
-```
-> This starts the Vite development server on the port defined as `frontend_port` in `project.config.json`.
+> This single command starts the Vite development server on the port defined in `project.config.json` (e.g., `5173`).
 
-**How it works:** Open your browser to the frontend URL (e.g., `http://localhost:3000`). The Vite server serves the React application. We have configured a proxy in `vite.config.ts` that automatically forwards any API requests to the backend server using the ports defined in `project.config.json`. This provides a seamless development experience from a single port in the browser.
+**How it works:** The Vite server not only serves the React frontend with Hot Module Replacement (HMR) but also runs the backend Express API as middleware. Any request to `/api/*` is handled directly by the backend server code, while all other requests are handled by the frontend. This provides a true single-port development experience.
+
+**Automatic Restarting:**
+- Changes to frontend files (in `/src`) will instantly update in your browser (HMR).
+- Changes to the backend server file (`/server/server.js`) will require you to manually restart the Vite dev server (Ctrl+C and `npm run dev` again).
 
 ---
 
@@ -85,4 +83,4 @@ To create a production-ready build of the application:
     cd server
     npm start
     ```
-    The Node.js server will now serve both the API and the optimized frontend from a single port (the one defined as `backend_port` in the config). The API endpoint configuration works for both development and production without any changes.
+    The Node.js server will now serve both the API and the optimized frontend from a single port (the one defined as `port` in the config). The API endpoint configuration works for both development and production without any changes.
