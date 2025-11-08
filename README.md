@@ -14,7 +14,7 @@ For more details, see `ARCHITECTURE.md`.
 
 ## Centralized Port Configuration
 
-All port settings are managed in `project.config.json` in the root directory. This file contains a single `port` value that is used for both the development server and the production server.
+All port settings are managed in `project.config.json` in the root directory. This file defines separate ports for the frontend development server and the backend API server to prevent conflicts.
 
 ---
 
@@ -43,7 +43,7 @@ All port settings are managed in `project.config.json` in the root directory. Th
 
 ### Running the Application (Development Mode)
 
-The development environment has been simplified to run on a **single port** from a **single command**.
+The development environment is designed to be started with a **single command** in **one terminal**.
 
 **Start the Development Server:**
 In the project root directory, run:
@@ -51,9 +51,11 @@ In the project root directory, run:
 npm run dev
 ```
 
-> This single command starts the Vite development server on the port defined in `project.config.json` (e.g., `5173`).
+> This single command performs two actions automatically:
+> 1.  It starts the **backend API server** (`server/server.js`) in the background.
+> 2.  It starts the **Vite frontend development server**.
 
-**How it works:** The Vite server not only serves the React frontend with Hot Module Replacement (HMR) but also runs the backend Express API as middleware. Any request to `/api/*` is handled directly by the backend server code, while all other requests are handled by the frontend. This provides a true single-port development experience.
+**How it works:** The Vite server hosts the React app (e.g., on `http://localhost:5173`) with Hot Module Replacement (HMR). A proxy is configured in Vite to automatically forward any API requests (e.g., to `/api/*`) to the backend server, which is running on its own port. This provides a seamless development experience without module conflicts or needing multiple terminals.
 
 **Automatic Restarting:**
 - Changes to frontend files (in `/src`) will instantly update in your browser (HMR).
@@ -83,4 +85,4 @@ To create a production-ready build of the application:
     cd server
     npm start
     ```
-    The Node.js server will now serve both the API and the optimized frontend from a single port (the one defined as `port` in the config). The API endpoint configuration works for both development and production without any changes.
+    The Node.js server will now serve both the API and the optimized frontend from a single port (the one defined as `backend_port` in the config). The API endpoint configuration works for both development and production without any changes.

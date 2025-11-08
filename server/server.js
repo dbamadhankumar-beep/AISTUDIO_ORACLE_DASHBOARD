@@ -34,7 +34,6 @@ async function initializeDatabase() {
   }
 }
 
-
 async function createExpressApp() {
   // Initialize DB if it hasn't been already
   if (!db) {
@@ -115,16 +114,22 @@ async function createExpressApp() {
 }
 
 
-// This block runs only when the script is executed directly (e.g., `npm start` or `node server.js`)
-// It does not run when the file is `require`'d by Vite.
-if (require.main === module) {
-  const PORT = process.env.PORT || config.port;
+// This block runs when the script is executed directly (e.g., `npm start` or `node server.js`)
+const isProduction = process.env.NODE_ENV === 'production';
+const PORT = process.env.PORT || config.backend_port;
 
-  createExpressApp().then(app => {
-    // --- Serve React Frontend for Production ---
+createExpressApp().then(app => {
+  // In production, the backend server is also responsible for serving the React app.
+  if (isProduction || require.main === module) { 
     const buildPath = path.join(__dirname, '..', 'build');
     app.use(express.static(buildPath));
+    
     app.get('*', (req, res) => {
+      // Ignore API routes, letting them 404 if not found
+      if (req.path.startsWith('/api/')) {
+        return res.status(404).json({ message: 'API endpoint not found.' });
+      }
+
       const indexPath = path.join(buildPath, 'index.html');
       res.sendFile(indexPath, (err) => {
         if (err) {
@@ -132,13 +137,14 @@ if (require.main === module) {
         }
       });
     });
+  }
 
-    app.listen(PORT, () => {
-      console.log(`ProactiveDB Server listening on port ${PORT}`);
-      console.log(`Mode: Production (serving API and built frontend from http://localhost:${PORT})`);
-    });
+  app.listen(PORT, () => {
+    console.log(`ProactiveDB Backend Server listening on port ${PORT}`);
+    if (isProduction) {
+      console.log(`Mode: Production (serving API and built frontend)`);
+    } else {
+      console.log(`Mode: Development (serving API only)`);
+    }
   });
-}
-
-// Export the app creator function for Vite to use as middleware
-module.exports = { createExpressApp };
+});
