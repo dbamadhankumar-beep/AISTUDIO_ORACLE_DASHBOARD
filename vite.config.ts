@@ -1,23 +1,21 @@
-import path from 'path';
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import config from './project.config.json';
 
-export default defineConfig(({ mode }) => {
-    const env = loadEnv(mode, '.', '');
-    return {
-      server: {
-        port: 3000,
-        host: '0.0.0.0',
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    port: config.frontend_port, // Port for the frontend dev server
+    proxy: {
+      // Proxy API requests from the frontend to the backend server.
+      // This allows the frontend and backend to feel like they are
+      // running on the same port during development.
+      '/api': {
+        target: `http://localhost:${config.backend_port}`, // Read backend port from config
+        changeOrigin: true, // Recommended for virtual hosted sites
+        secure: false,      // Recommended for http targets
       },
-      plugins: [react()],
-      define: {
-        'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
-      },
-      resolve: {
-        alias: {
-          '@': path.resolve(__dirname, '.'),
-        }
-      }
-    };
+    },
+  },
 });

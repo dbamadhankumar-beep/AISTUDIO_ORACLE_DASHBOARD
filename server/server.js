@@ -5,9 +5,10 @@ const cors = require('cors');
 const path =require('path');
 const sqlite3 = require('sqlite3');
 const { open } = require('sqlite');
+const config = require('../project.config.json');
 
 const app = express();
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || config.backend_port;
 const DB_FILE = path.join(__dirname, 'proactivedb.sqlite');
 let db;
 

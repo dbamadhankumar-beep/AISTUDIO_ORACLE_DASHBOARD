@@ -1,8 +1,12 @@
 import { Customer } from '../types';
 
-// Use a relative path for the API endpoint. This works because the Node.js server
-// serves both the API and the frontend from the same origin.
+// The API base URL is a relative path.
+// - In development, the Vite dev server will proxy requests from /api 
+//   to the backend server (http://localhost:5173) as configured in vite.config.ts.
+// - In production, the Node.js server serves both the frontend and the API,
+//   so relative paths work naturally.
 const API_BASE_URL = '/api';
+
 
 /**
  * Fetches the latest state of all customers and their databases from the server.
@@ -34,7 +38,7 @@ const fetchAllData = async (): Promise<Customer[]> => {
  * Fetches the initial list of customers and their databases from the server.
  */
 export const fetchCustomersAndDatabases = (): Promise<Customer[]> => {
-  console.log('API_SERVICE: Fetching initial data from server...');
+  console.log(`API_SERVICE: Fetching initial data from server at ${API_BASE_URL}...`);
   return fetchAllData();
 };
 
@@ -42,6 +46,6 @@ export const fetchCustomersAndDatabases = (): Promise<Customer[]> => {
  * Fetches the latest metrics for all databases to provide live updates.
  */
 export const fetchRealtimeUpdates = (): Promise<Customer[]> => {
-  console.log('API_SERVICE: Polling for realtime updates from server...');
+  console.log(`API_SERVICE: Polling for realtime updates from server at ${API_BASE_URL}...`);
   return fetchAllData();
 };
