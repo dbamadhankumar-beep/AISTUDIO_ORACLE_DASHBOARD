@@ -1,0 +1,11 @@
+# Python libraries required to run the monitoring agent.
+# Install them using: pip install -r requirements.txt
+
+# For Oracle Database connectivity
+oracledb>=2.0.0
+
+# For cross-platform OS metric collection (CPU, Memory, Disk, etc.)
+psutil>=5.9.0
+
+# For sending data to the centralized server API
+requests>=2.28.0
